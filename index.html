@@ -25,11 +25,11 @@
 
       <div class="dates-bar">
         <div class="date-pill release">
-          <div class="date-label">Announcement DATE</div>
-          <div class="date-value">23.11.2026</div>
+          <div class="date-label">RELEASE DATE</div>
+          <div class="date-value">27.11.2026</div>
         </div>
         <div class="date-pill sale">
-          <div class="date-label">Release Date</div>
+          <div class="date-label">ON SALE FROM</div>
           <div class="date-value">22.03.2027</div>
         </div>
       </div>
@@ -48,19 +48,25 @@
         <!-- Left Hardware Controls -->
         <div class="side-controls">
           <div class="control-unit">
-            <button class="hw-btn menu-btn" onclick="pressMenuButton()" title="Press Menu Button to Pause while in game">&#9776;</button>
-            <div class="btn-hint">Menu</div>
+            <button class="hw-btn menu-btn" onclick="pressMenuButton()" title="Menu / Pause (Esc)">&#9776;</button>
+            <div class="btn-hint">Menu [Esc]</div>
           </div>
 
           <div class="dpad" aria-label="D-Pad">
-            <div class="blank"></div><div></div><div class="blank"></div>
-            <div></div><div></div><div></div>
-            <div class="blank"></div><div></div><div class="blank"></div>
+            <div class="blank"></div>
+            <button class="dpad-btn" onclick="handleDpad('up')" title="Up">&#9650;</button>
+            <div class="blank"></div>
+            <button class="dpad-btn" onclick="handleDpad('left')" title="Left">&#9664;</button>
+            <div class="dpad-center"></div>
+            <button class="dpad-btn" onclick="handleDpad('right')" title="Right">&#9654;</button>
+            <div class="blank"></div>
+            <button class="dpad-btn" onclick="handleDpad('down')" title="Down">&#9660;</button>
+            <div class="blank"></div>
           </div>
 
           <div class="control-unit">
-            <button class="hw-btn power-btn" onclick="openPowerMenu()" title="Press Power Button: Shutdown, Standby, Restart">&#9211;</button>
-            <div class="btn-hint">Power</div>
+            <button class="hw-btn power-btn" onclick="openPowerMenu()" title="Power Options [P]">&#9211;</button>
+            <div class="btn-hint">Power [P]</div>
           </div>
         </div>
 
@@ -72,48 +78,49 @@
                 <span id="hudWifi">📶 Wi-Fi</span>
                 <span id="hudHdmi" style="display:none; color:#4ecdc4;">📺 HDMI</span>
                 <span id="hudClock">09:18</span>
+                <span class="save-badge" id="saveBadge" title="Saved automatically to LocalStorage">💾 Saved</span>
               </div>
               <div class="status-right">
                 <span class="pill-stat">🪙 <span id="goldCount">10000</span></span>
-                <span class="pill-stat">❤️ 5 FULL</span>
+                <span class="pill-stat">❤️ FULL</span>
                 <span class="pill-stat">🔋 USB-C</span>
               </div>
             </div>
 
             <div class="screen-nav">
-              <button class="nav-tab active" data-view="worldMapView" onclick="switchView('worldMapView')">🗺️ World Map</button>
-              <button class="nav-tab" data-view="gameView" onclick="switchView('gameView')">🎮 Level 1071</button>
-              <button class="nav-tab" data-view="editorView" onclick="switchView('editorView')">🛠️ Level Editor</button>
-              <button class="nav-tab" data-view="techTreeView" onclick="switchView('techTreeView')">🌳 Tech Tree</button>
-              <button class="nav-tab" data-view="inventoryView" onclick="switchView('inventoryView')">🎒 Boosters &amp; Rewards</button>
+              <button class="nav-tab active" data-view="worldMapView" onclick="switchView('worldMapView')">🗺️ Map</button>
+              <button class="nav-tab" data-view="gameView" onclick="switchView('gameView')">🎮 Play</button>
+              <button class="nav-tab" data-view="editorView" onclick="switchView('editorView')">🛠️ Editor</button>
+              <button class="nav-tab" data-view="techTreeView" onclick="switchView('techTreeView')">🌳 Tech</button>
+              <button class="nav-tab" data-view="inventoryView" onclick="switchView('inventoryView')">🎒 Boosters</button>
+              <button class="nav-tab" data-view="manualView" onclick="switchView('manualView')">📖 Manual</button>
               <button class="nav-tab" data-view="profileView" onclick="switchView('profileView')">🏅 Profile</button>
               <button class="nav-tab" data-view="settingsView" onclick="switchView('settingsView')">⚙️ Settings</button>
             </div>
 
-            <!-- View 1: World Map -->
+            <!-- View 1: Multi-Stage World Map (Levels 1069–1075) -->
             <div class="screen-view active" id="worldMapView">
               <div class="map-card">
-                <div class="rocket-badge">🚀 ROCKET LAUNCHPAD SECTOR • NEW UI HOME SCREEN</div>
-                <p class="sub-note">Press <strong>Home (⌂)</strong> anytime to jump back to World Maps.</p>
-                <div class="level-nodes">
-                  <div class="node">1069<br>★★★</div>
-                  <div class="node">1070<br>★</div>
-                  <div class="node current">1071</div>
-                  <div class="node dimmed">1075</div>
-                </div>
-                <button class="play-btn" onclick="switchView('gameView')">PLAY LEVEL 1071</button>
+                <div class="rocket-badge" id="stageSectorBadge">🚀 ROCKET LAUNCHPAD • LEVEL 1071</div>
+                <p class="sub-note" id="stageDescText">Crates &amp; Anchors • Clear 30 dots &amp; sink 2 anchors</p>
+
+                <div class="level-nodes" id="levelNodesRow"></div>
+
+                <button class="play-btn" id="launchStageBtn" onclick="launchSelectedStage()">PLAY LEVEL 1071 [Enter]</button>
                 <div class="reward-banner">
-                  🎁 Collection Reward Upgraded: 10,000 Gold (1.25x Bigger Rewards!)
+                  🎁 Collection Target: 10,000 Gold (1.25x Bigger Rewards!) • Use &larr;/&rarr; + Enter
                 </div>
               </div>
             </div>
 
-            <!-- View 2: Playable Drag-to-Connect Game -->
+            <!-- View 2: Playable Drag & Keyboard Dot Board -->
             <div class="screen-view" id="gameView">
               <div class="game-hud">
+                <span id="hudStageTag">Lv.1071</span>
                 <span>Moves: <strong id="movesLeft">15</strong></span>
-                <span>Cleared: <strong id="dotsCleared">0</strong>/39</span>
-                <button class="action-sm coral" onclick="spinExtraMoves()">🎡 Spin Moves (250 🪙)</button>
+                <span>Dots: <strong id="dotsCleared">0</strong>/<strong id="dotsTarget">30</strong></span>
+                <span>⚓ <strong id="anchorsSunk">0</strong>/<strong id="anchorsTarget">2</strong></span>
+                <button class="action-sm coral" onclick="spinExtraMoves()">🎡 +5 (250 🪙)</button>
               </div>
 
               <div class="board-stage" id="boardStage">
@@ -122,18 +129,18 @@
               </div>
 
               <p class="game-tip" id="gameFeedback">
-                Drag across 2+ matching dots (or make a square!) • Press <strong>Menu (≡)</strong> to Pause.
+                Drag matching dots or use <strong>Arrows + Space</strong> • <strong>Esc</strong> to Pause
               </p>
             </div>
 
             <!-- View 3: Custom Level Editor -->
             <div class="screen-view" id="editorView">
               <div class="mini-box">
-                <h4>🛠️ Custom Level Editor (6&times;4 Board)</h4>
-                <p>Click dots to cycle colors, then load your board directly into Level 1071!</p>
+                <h4>🛠️ Custom Level Editor (Auto-Saved)</h4>
+                <p>Tap tiles to cycle colors, <strong>🔥 Fire</strong>, <strong>⚓ Anchor</strong>, and <strong>📦 Crate</strong>:</p>
                 <div class="dot-grid editor-grid" id="editorGrid"></div>
                 <div class="center-actions">
-                  <button class="action-sm teal" onclick="randomizeEditor()">Randomize Board</button>
+                  <button class="action-sm teal" onclick="randomizeEditor()">Randomize</button>
                   <button class="action-sm" onclick="testCustomLevel()">Play Custom Level</button>
                 </div>
               </div>
@@ -142,12 +149,19 @@
             <!-- View 4: Tech Tree -->
             <div class="screen-view" id="techTreeView">
               <div class="mini-box">
-                <h4>🌳 Expedition Tech Tree</h4>
+                <h4>🌳 Expedition Tech Tree (Saved in LocalStorage)</h4>
                 <p>Unlock permanent handheld perks using Gold:</p>
-                <div class="tech-list">
+                <div class="tech-list" id="techList">
                   <div>✅ <strong>Tier 1:</strong> +1.25x Collection Multiplier (Unlocked)</div>
                   <div>✅ <strong>Tier 2:</strong> Unlimited Timed Booster Slot (Unlocked)</div>
-                  <div>🔒 <strong>Tier 3:</strong> Golden Rocket Start — <button class="action-sm" onclick="unlockTech(this)">Unlock (500 🪙)</button></div>
+                  <div id="techTier3Row">
+                    🔒 <strong>Tier 3:</strong> Golden Rocket Start —
+                    <button class="action-sm" onclick="unlockTech(3, 500)">Unlock (500 🪙)</button>
+                  </div>
+                  <div id="techTier4Row">
+                    🔒 <strong>Tier 4:</strong> Master Fire Spark —
+                    <button class="action-sm" onclick="unlockTech(4, 1000)">Unlock (1,000 🪙)</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -166,30 +180,12 @@
               </div>
             </div>
 
-            <!-- View 6: Profile -->
-            <div class="screen-view" id="profileView">
-              <div class="mini-box">
-                <h4>🧑‍🚀 Explorer Profile — New Character: Nova</h4>
-                <p><strong>Rank:</strong> Grandmaster Dot Navigator (Tier IV)</p>
-                <p class="mt-4"><strong>Badges Earned:</strong> 🏅 Level 1071 Pioneer &bull; 🚀 Rocket Ace &bull; 🛠️ Level Architect &bull; 📺 TV Couch Champ</p>
-              </div>
-            </div>
-
-            <!-- View 7: Settings -->
-            <div class="screen-view" id="settingsView">
-              <div class="mini-box">
-                <h4>⚙️ Console System Settings</h4>
-                <label class="setting-row">
-                  ☀️ Brightness:
-                  <input type="range" min="40" max="120" value="100" oninput="setBrightness(this.value)" />
-                </label>
-                <label class="setting-row">
-                  🕒 Set Time:
-                  <input type="time" id="timeInput" value="09:18" onchange="updateClockDisplay()" />
-                </label>
-                <label class="setting-row">
-                  📅 Set Date:
-                  <input type="date" id="dateInput" value="2026-11-27" onchange="updateClockDisplay()" />
-                </label>
-                <div class="mt-6">
-                  <button class="action-sm" onclick="toggleWifi()">Toggle Wi-Fi</button>
+            <!-- View 6: Interactive TWO Dots User Manual Viewer -->
+            <div class="screen-view" id="manualView">
+              <div class="mini-box manual-box">
+                <div class="manual-header">
+                  <h4>📖 TWO DOTS USER MANUAL</h4>
+                  <span id="manualPageIndicator">Page 1 / 4</span>
+                </div>
+                <div class="manual-chapters" id="manualChapters"></div>
+                <div class="manual-body" id="manualContent"></div>
