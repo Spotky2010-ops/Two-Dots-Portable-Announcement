@@ -158,7 +158,7 @@ header {
 .console-wrapper {
   display: flex;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   transition: transform 0.3s ease;
 }
 
@@ -180,7 +180,7 @@ header {
   align-items: center;
   gap: 18px;
   width: 100%;
-  max-width: 840px;
+  max-width: 860px;
   box-shadow:
     inset 0 3px 6px rgba(255, 255, 255, 0.18),
     0 20px 45px rgba(29, 30, 38, 0.38);
@@ -192,7 +192,7 @@ header {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  height: 360px;
+  height: 365px;
   padding: 8px 0;
 }
 
@@ -227,26 +227,39 @@ header {
 .hw-btn.home-btn { border-color: var(--dot-purple); }
 
 .btn-hint {
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 700;
   color: #b8bfd4;
   margin-top: 4px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
 }
 
-/* D-Pad */
+/* Interactive D-Pad */
 .dpad {
   display: grid;
-  grid-template-columns: repeat(3, 24px);
-  grid-template-rows: repeat(3, 24px);
+  grid-template-columns: repeat(3, 26px);
+  grid-template-rows: repeat(3, 26px);
   gap: 2px;
 }
-.dpad div {
+.dpad .blank { background: transparent; }
+.dpad-center {
   background: #17181f;
   border-radius: 4px;
 }
-.dpad .blank { background: transparent; }
+.dpad-btn {
+  background: #17181f;
+  color: #94a3b8;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.65rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dpad-btn:hover { background: #262834; color: #ffffff; }
+.dpad-btn:active { transform: scale(0.92); }
 
 /* ABXY Buttons */
 .abxy {
@@ -281,7 +294,7 @@ header {
 .screen {
   background: #1f2a44;
   border-radius: 14px;
-  height: 390px;
+  height: 405px;
   overflow: hidden;
   position: relative;
   display: flex;
@@ -298,7 +311,7 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -306,13 +319,25 @@ header {
 .status-left, .status-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .pill-stat {
   background: rgba(255, 255, 255, 0.12);
   padding: 2px 8px;
   border-radius: 999px;
+}
+
+.save-badge {
+  color: var(--dot-teal);
+  font-size: 0.65rem;
+  opacity: 0.9;
+  transition: transform 0.2s ease;
+}
+
+.save-badge.flash {
+  transform: scale(1.18);
+  color: #ffffff;
 }
 
 /* Navigation Tabs */
@@ -329,8 +354,8 @@ header {
   color: #dbe6ff;
   border: none;
   border-radius: 8px;
-  padding: 5px 9px;
-  font-size: 0.68rem;
+  padding: 5px 8px;
+  font-size: 0.66rem;
   font-weight: 800;
   cursor: pointer;
   white-space: nowrap;
@@ -353,11 +378,11 @@ header {
   display: block;
 }
 
-/* World Map View */
+/* Multi-Stage World Map View */
 .map-card {
   background: linear-gradient(180deg, #1b2845 0%, #274060 100%);
   border-radius: 14px;
-  padding: 14px;
+  padding: 12px;
   text-align: center;
   border: 2px solid rgba(255, 255, 255, 0.12);
 }
@@ -367,14 +392,14 @@ header {
   background: var(--dot-teal);
   color: var(--navy);
   font-weight: 900;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   padding: 4px 12px;
   border-radius: 999px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .sub-note {
-  font-size: 0.75rem;
+  font-size: 0.73rem;
   color: #dbe6ff;
 }
 
@@ -382,34 +407,46 @@ header {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   margin: 12px 0;
+  flex-wrap: wrap;
 }
 
 .node {
-  width: 44px;
-  height: 44px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: #ffffff;
   color: var(--navy);
   font-weight: 900;
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 0 #b8c4d9;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s ease;
 }
 
-.node.current {
-  width: 58px;
-  height: 58px;
+.node:hover {
+  transform: translateY(-2px);
+}
+
+.node .node-stars {
+  font-size: 0.58rem;
+  color: #e67e22;
+  margin-top: 1px;
+}
+
+.node.selected {
+  width: 60px;
+  height: 60px;
   background: var(--dot-yellow);
   border: 3px solid #ffffff;
-  font-size: 0.95rem;
-}
-
-.node.dimmed {
-  opacity: 0.7;
+  font-size: 0.85rem;
+  box-shadow: 0 0 14px rgba(247, 183, 49, 0.75);
 }
 
 .play-btn {
@@ -417,40 +454,40 @@ header {
   color: #ffffff;
   border: none;
   border-radius: 999px;
-  padding: 10px 28px;
-  font-size: 0.9rem;
+  padding: 9px 24px;
+  font-size: 0.85rem;
   font-weight: 900;
   cursor: pointer;
   box-shadow: 0 4px 0 #3a8b4f;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .play-btn:active { transform: translateY(2px); }
 
 .reward-banner {
-  margin-top: 12px;
-  font-size: 0.72rem;
+  margin-top: 10px;
+  font-size: 0.68rem;
   color: #f7b731;
   font-weight: 700;
 }
 
-/* Playable Drag-to-Connect Game Board */
+/* Playable Board & Gravity Drop Animations */
 .game-hud {
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: #ffffff;
   color: var(--navy);
-  padding: 6px 12px;
+  padding: 5px 9px;
   border-radius: 10px;
   margin-bottom: 8px;
-  font-size: 0.75rem;
+  font-size: 0.69rem;
   font-weight: 800;
 }
 
 .board-stage {
   position: relative;
-  width: 264px;
+  width: 268px;
   margin: 0 auto;
   user-select: none;
   touch-action: none;
@@ -467,48 +504,3 @@ header {
 
 .dot-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
-  background: #ffffff;
-  padding: 12px;
-  border-radius: 14px;
-  position: relative;
-  z-index: 1;
-}
-
-.editor-grid {
-  max-width: 240px;
-  margin: 8px auto;
-}
-
-.dot-cell {
-  aspect-ratio: 1;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  transition: transform 0.14s ease, box-shadow 0.14s ease;
-  position: relative;
-}
-
-.dot-cell:hover {
-  transform: scale(1.08);
-}
-
-.dot-cell.selected {
-  transform: scale(1.22);
-  box-shadow: 0 0 0 3px #ffffff, 0 0 0 6px var(--navy);
-}
-
-.dot-cell.square-highlight {
-  animation: pulseRing 0.45s ease infinite alternate;
-}
-
-@keyframes pulseRing {
-  from { transform: scale(1.05); }
-  to { transform: scale(1.25); }
-}
-
-.game-tip {
-  text-align: center;
-  font-size: 0.68rem;
-  margin-top: 7px;
