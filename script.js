@@ -1,366 +1,295 @@
-```javascript
 /* =========================================================
-   TWO DOTS HANDHELD CONSOLE — WEB AUDIO, DRAG-MATCH & OS
+   TWO DOTS HANDHELD CONSOLE — STAGES, MANUAL & KEYBOARD OS
    ========================================================= */
 
+const STORAGE_KEY = 'twoDotsConsoleSave_v2';
 const DOT_COLORS = ['#ff6b72', '#2185d5', '#4ecdc4', '#f7b731', '#9b59b6'];
 const COLS = 6;
 const ROWS = 4;
 const TOTAL_CELLS = COLS * ROWS;
 
+/* =========================================================
+   1. MULTI-STAGE WORLD MAP DATA (LEVELS 1069–1075)
+   ========================================================= */
+const STAGES = [
+  {
+    id: 1069,
+    sector: 'EMBER FOUNDRY',
+    desc: 'Fire Dots 🔥 • Clear 24 dots & 0 anchors',
+    moves: 16,
+    dotGoal: 24,
+    anchorGoal: 0,
+    buildBoard: () => {
+      const b = Array.from({ length: TOTAL_CELLS }, () => createRandomTile(false, 1));
+      b = { type: 'fire', color: '#ff6b72', dropRows: 1 };
+      b = { type: 'fire', color: '#ff6b72', dropRows: 1 };
+      b = { type: 'fire', color: '#ff6b72', dropRows: 1 };
+      return b;
+    }
+  },
+  {
+    id: 1070,
+    sector: 'CARGO BRIDGE',
+    desc: 'Wooden Crates 📦 • Clear 26 dots & crack crates',
+    moves: 16,
+    dotGoal: 26,
+    anchorGoal: 0,
+    buildBoard: () => {
+      const b = Array.from({ length: TOTAL_CELLS }, () => createRandomTile(false, 1));
+      [6, 7, 10, 11, 14, 15].forEach(i => {
+        b[i] = { type: 'crate', color: 'crate', hp: 2, dropRows: 1 };
+      });
+      return b;
+    }
+  },
+  {
+    id: 1071,
+    sector: 'ROCKET LAUNCHPAD',
+    desc: 'Crates & Anchors • Clear 30 dots & sink 2 anchors',
+    moves: 15,
+    dotGoal: 30,
+    anchorGoal: 2,
+    buildBoard: () => {
+      const b = Array.from({ length: TOTAL_CELLS }, () => createRandomTile(true, 1));
+      b = { type: 'anchor', color: 'anchor', dropRows: 1 };
+      b = { type: 'anchor', color: 'anchor', dropRows: 1 };
+      b = { type: 'crate', color: 'crate', hp: 2, dropRows: 1 };
+      b = { type: 'crate', color: 'crate', hp: 2, dropRows: 1 };
+      b = { type: 'crate', color: 'crate', hp: 2, dropRows: 1 };
+      b = { type: 'crate', color: 'crate', hp: 2, dropRows: 1 };
+      b = { type: 'fire', color: '#ff6b72', dropRows: 1 };
+      return b;
+    }
+  },
+  {
+    id: 1072,
+    sector: 'DEEP HARBOR',
+    desc: 'Triple Anchor Drop • Clear 28 dots & sink 3 anchors',
+    moves: 16,
+    dotGoal: 28,
+    anchorGoal: 3,
+    buildBoard: () => {
+      const b = Array.from({ length: TOTAL_CELLS }, () => createRandomTile(false, 1));
+      [1, 3, 5].forEach(i => {
+        b[i] = { type: 'anchor', color: 'anchor', dropRows: 1 };
+      });
+      return b;
+    }
+  },
+  {
+    id: 1073,
+    sector: 'SOLAR REACTOR',
+    desc: 'Chain Blast • Clear 34 dots with Fire Dots 🔥',
+    moves: 14,
+    dotGoal: 34,
+    anchorGoal: 1,
+    buildBoard: () => {
+      const b = Array.from({ length: TOTAL_CELLS }, () => createRandomTile(true, 1));
+      [2, 7, 10, 15].forEach(i => {
+        b[i] = { type: 'fire', color: '#ff6b72', dropRows: 1 };
+      });
+      b = { type: 'anchor', color: 'anchor', dropRows: 1 };
+      return b;
+    }
+  },
+  {
+    id: 1074,
+    sector: 'CITADEL VAULT',
+    desc: 'Fortress Crates • Clear 35 dots & sink 2 anchors',
+    moves: 16,
+    dotGoal: 35,
+    anchorGoal: 2,
+    buildBoard: () => {
+      const b = Array.from({ length: TOTAL_CELLS }, () => createRandomTile(false, 1));
+      [7, 8, 9, 10, 13, 16].forEach(i => {
+        b[i] = { type: 'crate', color: 'crate', hp: 2, dropRows: 1 };
+      });
+      b = { type: 'anchor', color: 'anchor', dropRows: 1 };
+      b = { type: 'anchor', color: 'anchor', dropRows: 1 };
+      return b;
+    }
+  },
+  {
+    id: 1075,
+    sector: 'ORBITAL SUMMIT',
+    desc: 'Finale Challenge • Clear 39 dots & sink 3 anchors',
+    moves: 17,
+    dotGoal: 39,
+    anchorGoal: 3,
+    buildBoard: () => {
+      const b = Array.from({ length: TOTAL_CELLS }, () => createRandomTile(true, 1));
+      [0, 3, 5].forEach(i => (b[i] = { type: 'anchor', color: 'anchor', dropRows: 1 }));
+      [8, 9, 14, 15].forEach(i => (b[i] = { type: 'crate', color: 'crate', hp: 2, dropRows: 1 }));
+      [1, 16].forEach(i => (b[i] = { type: 'fire', color: '#ff6b72', dropRows: 1 }));
+      return b;
+    }
+  }
+];
+
 let gold = 10000;
+let levelsCompleted = 0;
+let unlockedTech = { 3: false, 4: false };
+let customEditorBoard = null;
+let stageStars = {
+  1069: 3,
+  1070: 1,
+  1071: 0,
+  1072: 0,
+  1073: 0,
+  1074: 0,
+  1075: 0
+};
+
+let selectedStageIndex = 2; /* Default Level 1071 */
+let activeStage = STAGES;
+let isPlayingCustomStage = false;
+
 let moves = 15;
 let cleared = 0;
+let anchorsSunk = 0;
+let currentDotGoal = 30;
+let currentAnchorGoal = 2;
+
 let wifiConnected = true;
 let tvConnected = false;
 let activeViewId = 'worldMapView';
 
-/* Game & Editor Board State */
-let boardColors = [];
-let editorColors = [];
+/* Board & Keyboard Cursor State */
+let boardTiles = [];
 let isDragging = false;
 let chain = [];
 let activeChainColor = null;
 let isSquareFormed = false;
+let kbdCursorIndex = 0;
+let kbdChainingActive = false;
 
 /* =========================================================
-   1. WEB AUDIO API (SOUND EFFECTS & AMBIENT BACKGROUND MUSIC)
+   2. INTERACTIVE TWO DOTS USER MANUAL CONTENT
    ========================================================= */
-let audioCtx = null;
-let sfxEnabled = true;
-let bgmEnabled = false;
-let bgmTimer = null;
-let bgmStep = 0;
-
-function ensureAudioContext() {
-  if (!audioCtx) {
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    audioCtx = new AudioContextClass();
+const MANUAL_PAGES = [
+  {
+    title: 'Controls & Shortcuts',
+    html: `
+      <strong>Hardware &amp; Hands-Free Keyboard Controls:</strong>
+      <ul>
+        <li><strong>D-Pad / Arrow Keys (&larr;&uarr;&darr;&rarr;):</strong> Select stages on the World Map or move the cursor on the puzzle board.</li>
+        <li><strong>Spacebar:</strong> Start, extend, or release a dot chain using the keyboard cursor.</li>
+        <li><strong>A Button / Enter:</strong> Launch the highlighted stage or confirm prompts.</li>
+        <li><strong>Menu (&equiv;) / Esc:</strong> Pause gameplay anytime; press <strong>Home (&#8962;) / H</strong> for World Maps.</li>
+      </ul>
+    `
+  },
+  {
+    title: 'Special Tiles & Squares',
+    html: `
+      <strong>Mastering Board Mechanics:</strong>
+      <ul>
+        <li><strong>Squares:</strong> Connect 4+ matching dots in a closed loop to clear <em>every</em> dot of that color on the board!</li>
+        <li><strong>Fire Dots 🔥:</strong> Matching a Fire Dot blasts all 4 adjacent orthogonal tiles.</li>
+        <li><strong>Anchors ⚓:</strong> Clear dots beneath Anchors so gravity drops them off the bottom row.</li>
+        <li><strong>Wooden Crates 📦:</strong> Match dots next to crates twice to crack and clear them.</li>
+      </ul>
+    `
+  },
+  {
+    title: 'Hardware, HDMI & Charging',
+    html: `
+      <strong>Console Hardware &amp; Box Contents:</strong>
+      <ul>
+        <li><strong>Connect to TV (HDMI):</strong> Toggle TV Output in the top bar or Settings to expand the console display.</li>
+        <li><strong>Power Button [P]:</strong> Access <em>Standby Mode</em> (live clock/date), <em>Restart</em>, or <em>CRT Shutdown</em>.</li>
+        <li><strong>Included in Box:</strong> USB-C Charging Cable, Protective Carrying Bags, Exclusive Wallpaper, Collectible Plush &amp; User Manual.</li>
+      </ul>
+    `
+  },
+  {
+    title: 'Economy & Tech Tree',
+    html: `
+      <strong>Upgraded Console Edition Rewards:</strong>
+      <ul>
+        <li><strong>1.25x Bigger Rewards:</strong> Every completed stage &amp; collection pays 1.25x Gold (Collection target: 10,000 Gold).</li>
+        <li><strong>Extra Moves Spin Wheel:</strong> Costs 250 Gold for +5 extra moves in tight stages.</li>
+        <li><strong>Expedition Tech Tree:</strong> Unlock permanent perks saved automatically in LocalStorage.</li>
+      </ul>
+    `
   }
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume();
-  }
-}
+];
 
-function playTone(freq, duration = 0.14, type = 'sine', volume = 0.14, delay = 0) {
-  if (!sfxEnabled) return;
-  ensureAudioContext();
+let manualPageIndex = 0;
 
-  const now = audioCtx.currentTime + delay;
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
+function renderManual() {
+  const page = MANUAL_PAGES[manualPageIndex];
+  document.getElementById('manualPageIndicator').textContent =
+    `Page ${manualPageIndex + 1} / ${MANUAL_PAGES.length}`;
 
-  osc.type = type;
-  osc.frequency.setValueAtTime(freq, now);
-
-  gain.gain.setValueAtTime(0.001, now);
-  gain.gain.exponentialRampToValueAtTime(volume, now + 0.015);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-
-  osc.start(now);
-  osc.stop(now + duration + 0.02);
-}
-
-/* Pentatonic chimes for dot connection chain */
-const PENTATONIC = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
-
-function playConnectNote(stepIndex) {
-  const freq = PENTATONIC[Math.min(stepIndex, PENTATONIC.length - 1)];
-  playTone(freq, 0.16, 'triangle', 0.16);
-}
-
-function playClearChord(isSquare = false) {
-  if (isSquare) {
-    [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
-      playTone(f, 0.32, 'triangle', 0.15, i * 0.045);
-    });
-  } else {
-    playTone(523.25, 0.2, 'sine', 0.15, 0);
-    playTone(659.25, 0.24, 'sine', 0.15, 0.06);
-  }
-}
-
-function playUiClick() {
-  playTone(440, 0.07, 'sine', 0.09);
-}
-
-function playShutdownSound() {
-  [523.25, 392.00, 329.63, 261.63].forEach((f, i) => {
-    playTone(f, 0.22, 'sine', 0.13, i * 0.11);
-  });
-}
-
-function playBootSound() {
-  [261.63, 329.63, 392.00, 523.25].forEach((f, i) => {
-    playTone(f, 0.2, 'triangle', 0.14, i * 0.09);
-  });
-}
-
-function toggleSfx() {
-  sfxEnabled = !sfxEnabled;
-  const btn = document.getElementById('sfxToggleBtn');
-  btn.classList.toggle('active', sfxEnabled);
-  btn.textContent = sfxEnabled ? '🔊 SFX: ON' : '🔇 SFX: OFF';
-  if (sfxEnabled) playUiClick();
-}
-
-function toggleMusic() {
-  bgmEnabled = !bgmEnabled;
-  const btn = document.getElementById('bgmToggleBtn');
-  btn.classList.toggle('active', bgmEnabled);
-  btn.textContent = bgmEnabled ? '🎵 BGM: ON' : '🎵 BGM: OFF';
-
-  if (bgmEnabled) {
-    ensureAudioContext();
-    startAmbientMusic();
-  } else {
-    stopAmbientMusic();
-  }
-}
-
-function startAmbientMusic() {
-  stopAmbientMusic();
-  const melody = [261.63, 329.63, 392.00, 440.00, 392.00, 329.63, 293.66, 392.00];
-  bgmTimer = setInterval(() => {
-    if (!bgmEnabled) return;
-    ensureAudioContext();
-    const freq = melody[bgmStep % melody.length];
-    bgmStep++;
-
-    const now = audioCtx.currentTime;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, now);
-
-    gain.gain.setValueAtTime(0.001, now);
-    gain.gain.exponentialRampToValueAtTime(0.045, now + 0.08);
-    gain.gain.exponentialRampToValueAtTime(0.0008, now + 0.55);
-
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start(now);
-    osc.stop(now + 0.6);
-  }, 620);
-}
-
-function stopAmbientMusic() {
-  if (bgmTimer) {
-    clearInterval(bgmTimer);
-    bgmTimer = null;
-  }
-}
-
-/* =========================================================
-   2. NAVIGATION & HARDWARE BUTTONS
-   ========================================================= */
-function switchView(viewId) {
-  playUiClick();
-  closeOverlays();
-  activeViewId = viewId;
-
-  document.querySelectorAll('.screen-view').forEach(v => v.classList.remove('active'));
-  document.getElementById(viewId).classList.add('active');
-
-  document.querySelectorAll('.nav-tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.view === viewId);
-  });
-
-  if (viewId === 'gameView') {
-    setTimeout(drawChainLines, 20);
-  }
-}
-
-function pressHomeButton() {
-  if (document.getElementById('offOverlay').classList.contains('show')) return;
-  switchView('worldMapView');
-}
-
-function pressMenuButton() {
-  if (document.getElementById('offOverlay').classList.contains('show')) return;
-  playUiClick();
-  if (activeViewId === 'gameView') {
-    document.getElementById('pauseOverlay').classList.add('show');
-  } else {
-    switchView('settingsView');
-  }
-}
-
-function openPowerMenu() {
-  if (document.getElementById('offOverlay').classList.contains('show')) {
-    restartConsole();
-    return;
-  }
-  playUiClick();
-  document.getElementById('powerOverlay').classList.add('show');
-}
-
-function enterStandby() {
-  playUiClick();
-  closeOverlays();
-  updateClockDisplay();
-  document.getElementById('standbyOverlay').classList.add('show');
-}
-
-function wakeFromStandby() {
-  playUiClick();
-  closeOverlays();
-}
-
-function shutdownConsole() {
-  playShutdownSound();
-  closeOverlays();
-  const screen = document.getElementById('consoleScreen');
-  screen.classList.add('shutting-down');
-  setTimeout(() => {
-    screen.classList.remove('shutting-down');
-    document.getElementById('offOverlay').classList.add('show');
-  }, 720);
-}
-
-function restartConsole() {
-  playBootSound();
-  closeOverlays();
-  const screen = document.getElementById('consoleScreen');
-  screen.style.opacity = '0';
-  setTimeout(() => {
-    screen.style.opacity = '1';
-    switchView('worldMapView');
-  }, 350);
-}
-
-function closeOverlays() {
-  document.querySelectorAll('.screen-overlay').forEach(o => o.classList.remove('show'));
-}
-
-/* =========================================================
-   3. PLAYABLE DRAG-TO-CONNECT MATCHING DOT MECHANIC
-   ========================================================= */
-function randomColor() {
-  return DOT_COLORS[Math.floor(Math.random() * DOT_COLORS.length)];
-}
-
-function initPlayableBoard(customPreset = null) {
-  boardColors = customPreset
-    ? [...customPreset]
-    : Array.from({ length: TOTAL_CELLS }, () => randomColor());
-  renderPlayableBoard();
-}
-
-function renderPlayableBoard() {
-  const grid = document.getElementById('dotGrid');
-  grid.innerHTML = '';
-
-  boardColors.forEach((color, idx) => {
+  const chaptersEl = document.getElementById('manualChapters');
+  chaptersEl.innerHTML = '';
+  MANUAL_PAGES.forEach((p, idx) => {
     const btn = document.createElement('button');
-    btn.className = 'dot-cell';
-    btn.dataset.index = idx;
-    btn.style.background = color;
-
-    if (chain.includes(idx)) {
-      btn.classList.add('selected');
-    }
-    if (isSquareFormed && color === activeChainColor) {
-      btn.classList.add('square-highlight');
-    }
-
-    btn.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      startDotChain(idx);
-    });
-
-    grid.appendChild(btn);
+    btn.className = 'chapter-pill' + (idx === manualPageIndex ? ' active' : '');
+    btn.textContent = `${idx + 1}. ${p.title}`;
+    btn.onclick = () => {
+      playUiClick();
+      manualPageIndex = idx;
+      renderManual();
+    };
+    chaptersEl.appendChild(btn);
   });
 
-  drawChainLines();
+  document.getElementById('manualContent').innerHTML = page.html;
 }
 
-function areOrthogonallyAdjacent(idxA, idxB) {
-  const r1 = Math.floor(idxA / COLS);
-  const c1 = idxA % COLS;
-  const r2 = Math.floor(idxB / COLS);
-  const c2 = idxB % COLS;
-  return Math.abs(r1 - r2) + Math.abs(c1 - c2) === 1;
+function changeManualPage(delta) {
+  playUiClick();
+  manualPageIndex = (manualPageIndex + delta + MANUAL_PAGES.length) % MANUAL_PAGES.length;
+  renderManual();
 }
 
-function startDotChain(idx) {
-  if (moves <= 0) {
-    setGameFeedback('Out of moves! Spin the Wheel for +5 Moves.');
-    return;
-  }
-  isDragging = true;
-  isSquareFormed = false;
-  activeChainColor = boardColors[idx];
-  chain = [idx];
-  playConnectNote(0);
-  renderPlayableBoard();
-}
-
-function handleBoardPointerMove(e) {
-  if (!isDragging) return;
-  const target = document.elementFromPoint(e.clientX, e.clientY);
-  if (!target || !target.classList.contains('dot-cell')) return;
-
-  const targetIdx = Number(target.dataset.index);
-  const lastIdx = chain[chain.length - 1];
-  if (targetIdx === lastIdx) return;
-
-  /* Backtrack if dragging back to previous dot */
-  if (chain.length >= 2 && targetIdx === chain[chain.length - 2]) {
-    chain.pop();
-    isSquareFormed = false;
-    playConnectNote(chain.length - 1);
-    renderPlayableBoard();
-    return;
-  }
-
-  /* Validate same color & orthogonal neighbor */
-  if (boardColors[targetIdx] !== activeChainColor) return;
-  if (!areOrthogonallyAdjacent(lastIdx, targetIdx)) return;
-
-  /* Check for Square loop (closing back onto an earlier dot in chain) */
-  if (chain.includes(targetIdx)) {
-    if (chain.length >= 4 && !isSquareFormed) {
-      chain.push(targetIdx);
-      isSquareFormed = true;
-      playConnectNote(chain.length + 2);
-      setGameFeedback('✨ SQUARE FORMED! Release to clear ALL dots of this color!');
-      renderPlayableBoard();
+/* =========================================================
+   3. LOCALSTORAGE PERSISTENCE
+   ========================================================= */
+function saveProgress() {
+  const payload = {
+    gold,
+    levelsCompleted,
+    unlockedTech,
+    customEditorBoard,
+    stageStars,
+    selectedStageIndex
+  };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    const badge = document.getElementById('saveBadge');
+    if (badge) {
+      badge.classList.add('flash');
+      setTimeout(() => badge.classList.remove('flash'), 300);
     }
-    return;
-  }
-
-  if (!isSquareFormed) {
-    chain.push(targetIdx);
-    playConnectNote(chain.length - 1);
-    renderPlayableBoard();
+  } catch (err) {
+    console.warn('LocalStorage unavailable:', err);
   }
 }
 
-function finishDotChain() {
-  if (!isDragging) return;
-  isDragging = false;
+function loadProgress() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (typeof saved.gold === 'number') gold = saved.gold;
+    if (typeof saved.levelsCompleted === 'number') levelsCompleted = saved.levelsCompleted;
+    if (saved.unlockedTech) unlockedTech = { ...unlockedTech, ...saved.unlockedTech };
+    if (saved.stageStars) stageStars = { ...stageStars, ...saved.stageStars };
+    if (typeof saved.selectedStageIndex === 'number') selectedStageIndex = saved.selectedStageIndex;
+    if (Array.isArray(saved.customEditorBoard) && saved.customEditorBoard.length === TOTAL_CELLS) {
+      customEditorBoard = saved.customEditorBoard;
+    }
+  } catch (err) {
+    console.warn('Could not parse saved state:', err);
+  }
+}
 
-  const uniqueIndices = [...new Set(chain)];
+function applySavedUiState() {
+  updateGold();
+  updateProfileStats();
+  renderWorldMap();
 
-  if (uniqueIndices.length >= 2 && moves > 0) {
-    moves--;
-    let clearedThisTurn = 0;
-
-    if (isSquareFormed) {
-      /* Square bonus clears all dots matching activeChainColor */
-      boardColors = boardColors.map((col) => {
-        if (col === activeChainColor) {
-          clearedThisTurn++;
-          return randomColor();
-        }
-        return col;
-      });
-      playClearChord(true);
-      setGameFeedback(`💥 SQUARE CLEAR! Removed ${clearedThisTurn} matching dots!`);
-    } else {
-      uniqueIndices.forEach((idx) => {
-        boardColors[idx] = randomColor();
+  if (unlockedTech) {
